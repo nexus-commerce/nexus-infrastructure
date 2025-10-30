@@ -28,5 +28,5 @@ jobs:
           cd nexus-contracts
           echo "Exporting Protobuf dependencies..."
           # Ця команда тепер спрацює, оскільки версія buf правильна
-          buf dep export buf.build/googleapis/googleapis --output ../proto-dependencies
+          buf export buf.build/googleapis/googleapis --output ../proto-dependencies
           cd ..
