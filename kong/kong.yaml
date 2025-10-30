@@ -1,7 +1,7 @@
 _format_version: "3.0"
 
 services:
-  # Product Catalog Service
+  # Product Catalog Servic
   - name: product-service
     protocol: grpc
     host: product-catalog-service
