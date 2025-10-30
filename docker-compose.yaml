@@ -1,9 +1,7 @@
 services:
   user-service:
-    image: user-service
-    build:
-        context: ./user-service
-        dockerfile: Dockerfile
+    image: voloshmiak/user-service:0.01
+    container_name: user-service
     restart: unless-stopped
     ports:
       - "8081:8080"
@@ -24,10 +22,8 @@ services:
       - ecommerce-network
 
   product-catalog-service:
-    image: product-catalog-service
-    build:
-        context: product-catalog-service
-        dockerfile: Dockerfile
+    image: voloshmiak/product-catalog-service:0.01
+    container_name: product-catalog-service
     restart: unless-stopped
     ports:
       - "8082:8080"
@@ -51,10 +47,8 @@ services:
       - ecommerce-network
 
   shopping-cart-service:
-    image: shopping-cart-service
-    build:
-        context: shopping-cart-service
-        dockerfile: Dockerfile
+    image: voloshmiak/shopping-cart-service:0.0.1
+    container_name: shopping-cart-service
     restart: unless-stopped
     ports:
       - "8083:8080"
@@ -73,10 +67,8 @@ services:
       - ecommerce-network
 
   order-service:
-    image: order-service
-    build:
-        context: ./order-service
-        dockerfile: Dockerfile
+    image: voloshmiak/order-service:0.01
+    container_name: order-service
     restart: unless-stopped
     ports:
       - "8084:8080"
@@ -109,10 +101,8 @@ services:
       - ecommerce-network
 
   payment-service:
-    image: payment-service
-    build:
-        context: ./payment-service
-        dockerfile: Dockerfile
+    image: voloshmiak/payment-service:0.0.1
+    container_name: payment-service
     restart: unless-stopped
     ports:
       - "8085:8080"
@@ -142,10 +132,8 @@ services:
       - ecommerce-network
 
   notification-service:
-    image: notification-service
-    build:
-        context: ./notification-service
-        dockerfile: Dockerfile
+    image: voloshmiak/notification-service:0.0.1
+    container_name: notification-service
     restart: unless-stopped
     environment:
         KAFKA_HOST: kafka
@@ -154,14 +142,6 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-    networks:
-      - ecommerce-network
-
-  frontend:
-    build: ./frontend
-    restart: unless-stopped
-    ports:
-      - "8089:3000"
     networks:
       - ecommerce-network
 
