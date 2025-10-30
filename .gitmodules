@@ -1,0 +1,3 @@
+[submodule "nexus-contracts"]
+	path = nexus-contracts
+	url = https://github.com/nexus-commerce/nexus-contracts.git
