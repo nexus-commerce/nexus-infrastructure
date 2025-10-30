@@ -196,7 +196,7 @@ services:
       - POSTGRES_DB=paymentdb
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
-      interval: 20s
+      interval: 15s
       timeout: 10s
       retries: 5
       start_period: 30s
