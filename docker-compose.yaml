@@ -328,7 +328,7 @@ services:
       - ./kong:/kong/declarative/
       - ./kong/kong-data/tmp:/tmp
       - ./kong/kong-data/prefix:/var/run/kong
-      - ./nexus-contracts/proto:/kong/protos
+      - ./nexus-contracts/proto:/kong/proto
     networks:
       - ecommerce-network
 

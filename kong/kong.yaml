@@ -9,7 +9,7 @@ services:
     plugins:
       - name: grpc-gateway
         config:
-          proto: /kong/protos/product-catalog/products.proto
+          proto: /kong/proto/product/v1/product.proto
 
   # User Service
   - name: user-service
@@ -19,7 +19,7 @@ services:
     plugins:
       - name: grpc-gateway
         config:
-          proto: /kong/protos/user/users.proto
+          proto: /kong/proto/user/v1/user.proto
 
   # Shopping Cart Service
   - name: cart-service
@@ -29,7 +29,7 @@ services:
     plugins:
       - name: grpc-gateway
         config:
-          proto: /kong/protos/shopping-cart/carts.proto
+          proto: /kong/proto/cart/v1/cart.proto
       - name: cors
         config:
           origins:
@@ -54,7 +54,7 @@ services:
     plugins:
       - name: grpc-gateway
         config:
-          proto: /kong/protos/order/orders.proto
+          proto: /kong/proto/order/v1/order.proto
 
   # Payment Service
   - name: payment-service
@@ -64,33 +64,37 @@ services:
     plugins:
       - name: grpc-gateway
         config:
-          proto: /kong/protos/payment/payments.proto
+          proto: /kong/proto/payment/v1/payment.proto
 
 routes:
   # Product Catalog Routes
   - name: products-list
     paths: [/api/v1/products]
     methods: [GET, POST]
-    service: product-service
+    service:
+      name: product-service
     strip_path: true
 
   - name: products-detail
     paths: ["~/api/v1/products/[a-zA-Z0-9-_]+$"]
     methods: [GET, PATCH, DELETE]
-    service: product-service
+    service:
+      name: product-service
     strip_path: true
 
   # User Service Routes
   - name: user-register
     paths: [/api/v1/auth/register]
     methods: [POST]
-    service: user-service
+    service:
+      name: user-service
     strip_path: true
 
   - name: user-login
     paths: [/api/v1/auth/login]
     methods: [POST, OPTIONS]
-    service: user-service
+    service:
+      name: user-service
     strip_path: true
     plugins:
         - name: cors
@@ -109,7 +113,8 @@ routes:
   - name: user-profile
     paths: [/api/v1/users/profile]
     methods: [GET, PUT]
-    service: user-service
+    service:
+      name: user-service
     strip_path: true
     plugins:
       - name: jwt
@@ -118,7 +123,8 @@ routes:
   - name: cart-view
     paths: [/api/v1/cart]
     methods: [GET, DELETE, OPTIONS]
-    service: cart-service
+    service:
+      name: cart-service
     strip_path: true
     plugins:
       - name: jwt
@@ -126,7 +132,8 @@ routes:
   - name: cart-add
     paths: [/api/v1/cart/items]
     methods: [POST, OPTIONS]
-    service: cart-service
+    service:
+      name: cart-service
     strip_path: true
     plugins:
         - name: jwt
@@ -134,7 +141,8 @@ routes:
   - name: cart-update
     paths: [~/api/v1/cart/items/\d+$]
     methods: [PATCH, DELETE]
-    service: cart-service
+    service:
+      name: cart-service
     strip_path: true
     plugins:
         - name: jwt
@@ -143,7 +151,8 @@ routes:
   - name: orders
     paths: [/api/v1/orders]
     methods: [GET, POST, OPTIONS]
-    service: order-service
+    service:
+      name: order-service
     strip_path: true
     plugins:
       - name: jwt
@@ -164,7 +173,8 @@ routes:
   - name: order-detail
     paths: [~/api/v1/orders/\d+$]
     methods: [GET]
-    service: order-service
+    service:
+      name: order-service
     strip_path: true
     plugins:
       - name: jwt
@@ -173,7 +183,8 @@ routes:
   - name: payments
     paths: [/api/v1/payments/initiate]
     methods: [POST, OPTIONS]
-    service: payment-service
+    service:
+      name: payment-service
     strip_path: true
     plugins:
       - name: jwt
@@ -194,7 +205,8 @@ routes:
   - name: get-payments
     paths: [/api/v1/payments]
     methods: [GET]
-    service: payment-service
+    service:
+      name: payment-service
     strip_path: true
     plugins:
       - name: jwt
