@@ -71,30 +71,26 @@ routes:
   - name: products-list
     paths: [/api/v1/products]
     methods: [GET, POST]
-    service:
-      name: product-service
+    service: product-service
     strip_path: true
 
   - name: products-detail
     paths: ["~/api/v1/products/[a-zA-Z0-9-_]+$"]
     methods: [GET, PATCH, DELETE]
-    service:
-      name: product-service
+    service: product-service
     strip_path: true
 
   # User Service Routes
   - name: user-register
     paths: [/api/v1/auth/register]
     methods: [POST]
-    service:
-      name: user-service
+    service: user-service
     strip_path: true
 
   - name: user-login
     paths: [/api/v1/auth/login]
     methods: [POST, OPTIONS]
-    service:
-      name: user-service
+    service: user-service
     strip_path: true
     plugins:
         - name: cors
@@ -113,8 +109,7 @@ routes:
   - name: user-profile
     paths: [/api/v1/users/profile]
     methods: [GET, PUT]
-    service:
-      name: user-service
+    service: user-service
     strip_path: true
     plugins:
       - name: jwt
@@ -123,8 +118,7 @@ routes:
   - name: cart-view
     paths: [/api/v1/cart]
     methods: [GET, DELETE, OPTIONS]
-    service:
-      name: cart-service
+    service: cart-service
     strip_path: true
     plugins:
       - name: jwt
@@ -132,8 +126,7 @@ routes:
   - name: cart-add
     paths: [/api/v1/cart/items]
     methods: [POST, OPTIONS]
-    service:
-      name: cart-service
+    service: cart-service
     strip_path: true
     plugins:
         - name: jwt
@@ -141,8 +134,7 @@ routes:
   - name: cart-update
     paths: [~/api/v1/cart/items/\d+$]
     methods: [PATCH, DELETE]
-    service:
-      name: cart-service
+    service: cart-service
     strip_path: true
     plugins:
         - name: jwt
@@ -151,8 +143,7 @@ routes:
   - name: orders
     paths: [/api/v1/orders]
     methods: [GET, POST, OPTIONS]
-    service:
-      name: order-service
+    service: order-service
     strip_path: true
     plugins:
       - name: jwt
@@ -173,8 +164,7 @@ routes:
   - name: order-detail
     paths: [~/api/v1/orders/\d+$]
     methods: [GET]
-    service:
-      name: order-service
+    service: order-service
     strip_path: true
     plugins:
       - name: jwt
@@ -183,8 +173,7 @@ routes:
   - name: payments
     paths: [/api/v1/payments/initiate]
     methods: [POST, OPTIONS]
-    service:
-      name: payment-service
+    service: payment-service
     strip_path: true
     plugins:
       - name: jwt
@@ -205,8 +194,7 @@ routes:
   - name: get-payments
     paths: [/api/v1/payments]
     methods: [GET]
-    service:
-      name: payment-service
+    service: payment-service
     strip_path: true
     plugins:
       - name: jwt

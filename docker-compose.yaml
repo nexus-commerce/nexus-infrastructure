@@ -1,6 +1,6 @@
 services:
   user-service:
-    image: voloshmiak/user-service:0.01
+    image: voloshmiak/user-service:0.0.1
     container_name: user-service
     restart: unless-stopped
     ports:
@@ -22,7 +22,7 @@ services:
       - ecommerce-network
 
   product-catalog-service:
-    image: voloshmiak/product-catalog-service:0.01
+    image: voloshmiak/product-catalog-service:0.0.1
     container_name: product-catalog-service
     restart: unless-stopped
     ports:
@@ -67,7 +67,7 @@ services:
       - ecommerce-network
 
   order-service:
-    image: voloshmiak/order-service:0.01
+    image: voloshmiak/order-service:0.0.1
     container_name: order-service
     restart: unless-stopped
     ports:
