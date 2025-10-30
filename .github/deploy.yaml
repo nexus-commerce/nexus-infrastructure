@@ -1,0 +1,25 @@
+name: Validate Configuration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout contracts code
+        uses: actions/checkout@v3
+
+      - name: Set up Buf
+        uses: bufbuild/buf-setup-action@v1
+        
+      - name: Export Protobuf dependencies
+        run: |
+          # Переходимо в папку з контрактами, де лежить buf.yaml
+          cd nexus-contracts
+          # Створюємо папку для залежностей на рівень вище
+          buf mod export . --output ../proto-dependencies
+          cd .. # Повертаємось в корінь робочої директорії
