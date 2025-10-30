@@ -21,5 +21,6 @@ jobs:
           # Переходимо в папку з контрактами, де лежить buf.yaml
           cd nexus-contracts
           # Створюємо папку для залежностей на рівень вище
-          buf mod export . --output ../proto-dependencies
-          cd .. # Повертаємось в корінь робочої директорії
+          buf dep export buf.build/googleapis/googleapis --output ../proto-dependencies
+          cd ..
+          # Повертаємось в корінь робочої директорії
