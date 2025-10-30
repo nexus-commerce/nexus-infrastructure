@@ -13,14 +13,20 @@ jobs:
       - name: Checkout contracts code
         uses: actions/checkout@v3
 
-      - name: Set up Buf
+      - name: Set up Buf with a specific version
         uses: bufbuild/buf-setup-action@v1
-        
-      - name: Export Protobuf dependencies
+        with:
+          # ВАЖЛИВО: Вказуємо конкретну нову версію, яка точно має команду 'dep export'
+          version: '1.29.0' 
+
+      # Додатковий крок для перевірки версії (можна потім видалити)
+      - name: Verify Buf version
+        run: buf --version
+
+      - name: Export Protobuf dependencies using 'buf dep'
         run: |
-          # Переходимо в папку з контрактами, де лежить buf.yaml
           cd nexus-contracts
-          # Створюємо папку для залежностей на рівень вище
+          echo "Exporting Protobuf dependencies..."
+          # Ця команда тепер спрацює, оскільки версія buf правильна
           buf dep export buf.build/googleapis/googleapis --output ../proto-dependencies
           cd ..
-          # Повертаємось в корінь робочої директорії
