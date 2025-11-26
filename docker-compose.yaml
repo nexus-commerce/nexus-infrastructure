@@ -2,9 +2,15 @@ services:
   user-service:
     image: voloshmiak/user-service:0.0.1
     container_name: user-service
-    restart: unless-stopped
+    hostname: user-service
+    networks:
+      - ecommerce-network
     ports:
-      - "8081:8080"
+      - ":8080"
+    restart: on-failure
+    depends_on:
+      postgres-user:
+        condition: service_healthy
     environment:
       DB_HOST: postgres-user
       DB_PORT: 5432
@@ -15,18 +21,21 @@ services:
       SERVER_PORT: 8080
       KAFKA_HOST: kafka
       KAFKA_PORT: 9092
-    depends_on:
-      postgres-user:
-        condition: service_healthy
-    networks:
-      - ecommerce-network
 
   product-catalog-service:
     image: voloshmiak/product-catalog-service:0.0.1
     container_name: product-catalog-service
-    restart: unless-stopped
+    hostname: product-catalog-service
+    networks:
+      - ecommerce-network
     ports:
-      - "8082:8080"
+      - ":8080"
+    restart: on-failure
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     environment:
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092
@@ -38,40 +47,48 @@ services:
       - SERVER_PORT=8080
       - ELASTIC_HOST=elasticsearch
       - ELASTIC_PORT=9200
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - ecommerce-network
 
   shopping-cart-service:
     image: voloshmiak/shopping-cart-service:0.0.1
     container_name: shopping-cart-service
-    restart: unless-stopped
+    hostname: shopping-cart-service
+    networks:
+      - ecommerce-network
     ports:
-      - "8083:8080"
+      - ":8080"
+    restart: on-failure
+    depends_on:
+      redis:
+        condition: service_healthy
+      product-catalog-service:
+        condition: service_started
     environment:
       DB_HOST: redis
       DB_PORT: 6379
       SERVER_PORT: 8080
       PRODUCT_CATALOG_HOST: product-catalog-service
       PRODUCT_CATALOG_PORT: 8080
-    depends_on:
-      redis:
-        condition: service_healthy
-      product-catalog-service:
-        condition: service_started
-    networks:
-      - ecommerce-network
 
   order-service:
     image: voloshmiak/order-service:0.0.1
     container_name: order-service
-    restart: unless-stopped
+    hostname: order-service
+    networks:
+      - ecommerce-network
     ports:
-      - "8084:8080"
+      - ":8080"
+    restart: on-failure
+    depends_on:
+      postgres-order:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      product-catalog-service:
+        condition: service_started
+      shopping-cart-service:
+        condition: service_started
+      user-service:
+        condition: service_started
     environment:
       DB_HOST: postgres-order
       DB_PORT: 5432
@@ -86,26 +103,25 @@ services:
       USER_PORT: 8080
       KAFKA_HOST: kafka
       KAFKA_PORT: 9092
-    depends_on:
-      postgres-order:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-      product-catalog-service:
-        condition: service_started
-      shopping-cart-service:
-        condition: service_started
-      user-service:
-        condition: service_started
-    networks:
-      - ecommerce-network
 
   payment-service:
     image: voloshmiak/payment-service:0.0.1
     container_name: payment-service
-    restart: unless-stopped
+    hostname: payment-service
+    networks:
+      - ecommerce-network
     ports:
-      - "8085:8080"
+      - ":8080"
+    restart: on-failure
+    depends_on:
+      postgres-payment:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+      product-catalog-service:
+        condition: service_started
     environment:
       DB_HOST: postgres-payment
       DB_PORT: 5432
@@ -119,202 +135,190 @@ services:
       KAFKA_HOST: kafka
       KAFKA_PORT: 9092
       STRIPE_SECRET: ${STRIPE_SECRET}
-    depends_on:
-      postgres-payment:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-      order-service:
-        condition: service_started
-      product-catalog-service:
-        condition: service_started
-    networks:
-      - ecommerce-network
 
   notification-service:
     image: voloshmiak/notification-service:0.0.1
     container_name: notification-service
-    restart: unless-stopped
+    hostname: notification-service
+    networks:
+      - ecommerce-network
+    restart: on-failure
+    depends_on:
+      kafka:
+        condition: service_healthy
     environment:
         KAFKA_HOST: kafka
         KAFKA_PORT: 9092
         SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-    depends_on:
-      kafka:
-        condition: service_healthy
-    networks:
-      - ecommerce-network
 
   postgres-user:
     image: postgres:15
-    restart: unless-stopped
+    container_name: postgres-user
+    hostname: postgres-user
+    networks:
+      - ecommerce-network
     ports:
-      - "5432:5432"
+      - ":5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: userdb
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
-      interval: 20s
-      timeout: 10s
+      interval: 5s
+      timeout: 5s
       retries: 5
       start_period: 30s
-    volumes:
-      - postgres-user-data:/var/lib/postgresql/data
-    networks:
-      - ecommerce-network
 
   postgres-order:
     image: postgres:15
-    restart: unless-stopped
+    container_name: postgres-order
+    hostname: postgres-order
+    networks:
+      - ecommerce-network
     ports:
-      - "5433:5432"
+      - ":5432"
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+    restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=orderdb
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
-      interval: 20s
-      timeout: 10s
+      interval: 5s
+      timeout: 5s
       retries: 5
       start_period: 30s
-    volumes:
-      - postgres-order-data:/var/lib/postgresql/data
-    networks:
-      - ecommerce-network
 
   postgres-payment:
     image: postgres:15
-    restart: unless-stopped
+    container_name: postgres-payment
+    hostname: postgres-payment
+    networks:
+      - ecommerce-network
     ports:
-      - "5434:5432"
+      - ":5432"
+    volumes:
+      - postgres-payment-data:/var/lib/postgresql/data
+    restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=paymentdb
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
-      interval: 15s
-      timeout: 10s
+      interval: 5s
+      timeout: 5s
       retries: 5
       start_period: 30s
-    volumes:
-      - postgres-payment-data:/var/lib/postgresql/data
-    networks:
-      - ecommerce-network
 
   mongodb:
     image: mongo:6.0
-    restart: unless-stopped
+    container_name: mongodb
+    networks:
+      - ecommerce-network
     ports:
-      - "27017:27017"
+      - ":27017"
+    volumes:
+      - mongodb-data:/data/db
+    restart: always
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=password
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.runCommand('ping').ok"]
-      interval: 20s
-      timeout: 10s
+      test: ["CMD", "mongosh", "--eval", "'db.runCommand({ping:1}).ok'"]
+      interval: 5s
+      timeout: 5s
       retries: 5
-      start_period: 30s
-    volumes:
-      - mongodb-data:/data/db
-    networks:
-      - ecommerce-network
+      start_period: 60s
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
-    restart: unless-stopped
+    container_name: elasticsearch
+    hostname: elasticsearch
+    networks:
+      - ecommerce-network
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - ":9200"
+      - ":9300"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    restart: always
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-    volumes:
-      - es-data:/usr/share/elasticsearch/data
-    networks:
-      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
 
   redis:
     image: redis:latest
-    restart: unless-stopped
+    container_name: redis
+    hostname: redis
+    networks:
+      - ecommerce-network
     ports:
-      - "6379:6379"
+      - ":6379"
+    volumes:
+      - redis-data:/data
+    restart: always
     environment:
       - REDIS_USER=user
       - REDIS_USER_PASSWORD=password
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
-    volumes:
-      - redis-data:/data
-    networks:
-      - ecommerce-network
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    restart: unless-stopped
-    ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    healthcheck:
-      test: [ "CMD-SHELL", "echo stat | nc localhost 2181" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
-    networks:
-      - ecommerce-network
+      start_period: 15s
 
   kafka:
-    image: confluentinc/cp-kafka:7.0.0
-    restart: always
+    image: confluentinc/cp-kafka:8.1.0
+    container_name: kafka
+    hostname: kafka
+    networks:
+      - ecommerce-network
     ports:
       - "9092:9092"
       - "29092:29092"
+    restart: always
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://0.0.0.0:29092'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,CONTROLLER://kafka:9093,PLAINTEXT_HOST://0.0.0.0:9092'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
     healthcheck:
-      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
-      interval: 10s
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 5s
       timeout: 5s
       retries: 5
       start_period: 45s
-    depends_on:
-      zookeeper:
-        condition: service_healthy
-    networks:
-      - ecommerce-network
 
   kong-gateway:
-    image: kong/kong-gateway:latest
-    read_only: true
-    restart: unless-stopped
-    environment:
-      KONG_PREFIX: /var/run/kong
-      KONG_DATABASE: off
-      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yaml
-      KONG_PROXY_ACCESS_LOG: /dev/stdout
-      KONG_ADMIN_ACCESS_LOG: /dev/stdout
-      KONG_PROXY_ERROR_LOG: /dev/stderr
-      KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_ADMIN_LISTEN: 0.0.0.0:8001
-      KONG_ADMIN_GUI_URL: http://localhost:8002
-      KONG_LICENSE_DATA: "${KONG_LICENSE_DATA}"
+    image: voloshmiak/my-custom-kong:0.0.1
+    container_name: kong-gateway
+    hostname: kong-gateway
+    networks:
+      - ecommerce-network
     ports:
       - "8000:8000"
       - "8443:8443"
@@ -329,8 +333,26 @@ services:
       - ./kong/kong-data/tmp:/tmp
       - ./kong/kong-data/prefix:/var/run/kong
       - ./nexus-contracts/proto:/kong/proto
-    networks:
-      - ecommerce-network
+      - ./nexus-contracts/proto/google/api:/usr/local/kong/include/google/api
+    restart: always
+    environment:
+      KONG_PREFIX: /var/run/kong
+      KONG_DATABASE: off
+      KONG_STATUS_LISTEN: 0.0.0.0:8100
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yaml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+      KONG_LICENSE_DATA: "${KONG_LICENSE_DATA}"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8100/status/ready" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   ecommerce-network:
@@ -343,4 +365,3 @@ volumes:
   mongodb-data:
   es-data:
   redis-data:
-  zookeeper-data:
