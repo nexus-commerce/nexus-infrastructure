@@ -1,6 +1,6 @@
 services:
   user-service:
-    image: voloshmiak/user-service:0.0.1
+    image: voloshmiak/user-service:0.0.3
     container_name: user-service
     hostname: user-service
     networks:
@@ -11,6 +11,8 @@ services:
     depends_on:
       postgres-user:
         condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
     environment:
       DB_HOST: postgres-user
       DB_PORT: 5432
@@ -20,7 +22,7 @@ services:
       DB_MIGRATIONS_PATH: ./migrations
       SERVER_PORT: 8080
       KAFKA_HOST: kafka
-      KAFKA_PORT: 9092
+      KAFKA_PORT: 29092
 
   product-catalog-service:
     image: voloshmiak/product-catalog-service:0.0.1
@@ -35,7 +37,7 @@ services:
       mongodb:
         condition: service_healthy
       elasticsearch:
-        condition: service_healthy
+        condition: service_started
     environment:
       - KAFKA_HOST=kafka
       - KAFKA_PORT=9092
@@ -235,7 +237,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 30s
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
@@ -253,11 +255,11 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      test: ["CMD-SHELL", "curl -s localhost:9200/_cluster/health | grep -q '\"status\":\"yellow\"\\|\"status\":\"green\"'"]
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 30s
 
   redis:
     image: redis:latest
@@ -288,7 +290,7 @@ services:
       - ecommerce-network
     ports:
       - "9092:9092"
-      - "29092:29092"
+      - ":29092"
     restart: always
     environment:
       KAFKA_NODE_ID: 1
@@ -312,6 +314,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 45s
+
+  kafka-init:
+    image: confluentinc/cp-kafka:8.1.0
+    container_name: kafka-init
+    networks:
+      - ecommerce-network
+    volumes:
+      - ./scripts/create-kafka-topics.sh:/usr/local/bin/create-kafka-topics.sh
+    command: /usr/local/bin/create-kafka-topics.sh
+    depends_on:
+      kafka:
+        condition: service_healthy
 
   kong-gateway:
     image: voloshmiak/my-custom-kong:0.0.1
