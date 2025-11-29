@@ -70,20 +70,36 @@ routes:
   # Product Catalog Routes
   - name: products-list
     paths: [/api/v1/products]
-    methods: [GET, POST]
+    methods: [GET]
     service: product-service
     strip_path: true
 
-  - name: products-detail
-    paths: ["~/api/v1/products/[a-zA-Z0-9-_]+$"]
-    methods: [GET, PATCH, DELETE]
+  - name: products-create
+    paths: [ /api/v1/products ]
+    methods: [POST]
     service: product-service
     strip_path: true
+    plugins:
+      - name: jwt
+
+  - name: products-detail
+    paths: ["~/api/v1/products/[a-zA-Z0-9-_]+$"]
+    methods: [GET]
+    service: product-service
+    strip_path: true
+
+  - name: products-edit
+    paths: ["~/api/v1/products/[a-zA-Z0-9-_]+$"]
+    methods: [PATCH, DELETE]
+    service: product-service
+    strip_path: true
+    plugins:
+      - name: jwt
 
   # User Service Routes
   - name: user-register
     paths: [/api/v1/auth/register]
-    methods: [POST]
+    methods: [POST, OPTIONS]
     service: user-service
     strip_path: true
 
@@ -108,7 +124,7 @@ routes:
 
   - name: user-profile
     paths: [/api/v1/users/profile]
-    methods: [GET, PUT]
+    methods: [GET, PATCH, OPTIONS]
     service: user-service
     strip_path: true
     plugins:
@@ -132,8 +148,8 @@ routes:
         - name: jwt
 
   - name: cart-update
-    paths: [~/api/v1/cart/items/\d+$]
-    methods: [PATCH, DELETE]
+    paths: ["~/api/v1/cart/items/[a-zA-Z0-9-_]+$"]
+    methods: [PATCH, DELETE, OPTIONS]
     service: cart-service
     strip_path: true
     plugins:
@@ -171,8 +187,8 @@ routes:
 
   # Payment Service Routes
   - name: payments
-    paths: [/api/v1/payments/initiate]
-    methods: [POST, OPTIONS]
+    paths: [/api/v1/payments]
+    methods: [GET, POST, OPTIONS]
     service: payment-service
     strip_path: true
     plugins:
@@ -190,14 +206,6 @@ routes:
             - Authorization
           credentials: true
           max_age: 3600
-
-  - name: get-payments
-    paths: [/api/v1/payments]
-    methods: [GET]
-    service: payment-service
-    strip_path: true
-    plugins:
-      - name: jwt
 
 plugins:
   - name: rate-limiting
