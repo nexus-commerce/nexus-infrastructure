@@ -53,6 +53,13 @@ spec:
           volumeMounts:
             - name: mongodb-storage
               mountPath: /data/db
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "200m"
+            limits:
+              memory: "768Mi"
+              cpu: "600m"
   volumeClaimTemplates:
     - metadata:
         name: mongodb-storage
@@ -60,8 +67,4 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            memory: "384Mi"
-            cpu: "200m"
-          limits:
-            memory: "768Mi"
-            cpu: "600m"
+            storage: 5Gi

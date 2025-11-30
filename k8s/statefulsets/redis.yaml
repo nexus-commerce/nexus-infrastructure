@@ -52,6 +52,14 @@ spec:
           volumeMounts:
             - name: redis-storage
               mountPath: /data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+
   volumeClaimTemplates:
     - metadata:
         name: redis-storage
@@ -59,8 +67,4 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
-          limits:
-            memory: "256Mi"
-            cpu: "250m"
+            storage: 1Gi

@@ -66,6 +66,13 @@ spec:
           volumeMounts:
             - name: elasticsearch-data
               mountPath: /usr/share/elasticsearch/data
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "1.5Gi"
+              cpu: "1000m"
   volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
@@ -73,8 +80,4 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "1.5Gi"
-            cpu: "1000m"
+            storage: 5Gi

@@ -61,6 +61,13 @@ spec:
           volumeMounts:
             - name: postgres-order-storage
               mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "150m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
   volumeClaimTemplates:
     - metadata:
         name: postgres-order-storage
@@ -68,8 +75,4 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "150m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+            storage: 5Gi
