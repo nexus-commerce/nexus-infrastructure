@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-init-topics
+  namespace: data
+spec:
+  template:
+    spec:
+      containers:
+        - name: init-topics
+          image: confluentinc/cp-kafka:8.1.0
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              echo "Waiting for Kafka..."
+              TARGET="kafka-0.kafka-service.data.svc.cluster.local:9092"
+              
+              # Use kafka-topics to check connectivity. 
+              # It returns 0 on success, non-zero on failure.
+              until kafka-topics --bootstrap-server $TARGET --list > /dev/null 2>&1; do
+                echo "Failed to connect to $TARGET. Retrying in 5s..."
+                sleep 5
+              done
+              
+              echo "Kafka is ready! Creating topics..."
+              
+              topics=(
+                "users.registered"
+                "payment.succeeded"
+                "payment.failed"
+                "stock.reserved"
+                "stock.reservation.failed"
+                "orders.created"
+                "orders.confirmed"
+              )
+              
+              for topic in "${topics[@]}"; do
+                echo "Creating topic $topic..."
+                kafka-topics --create --if-not-exists --bootstrap-server $TARGET \
+                  --topic $topic --partitions 3 --replication-factor 1
+              done
+      restartPolicy: OnFailure

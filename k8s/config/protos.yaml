@@ -1,0 +1,507 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-proto-files
+  namespace: api
+data:
+  user.proto: |
+    syntax = "proto3";
+    
+    option go_package = "gen/v1/user";
+    
+    import "google/api/annotations.proto";
+    import "google/protobuf/field_mask.proto";
+    
+    package user.v1;
+    
+    service UserService {
+      rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
+        option (google.api.http) = {
+          post: "/api/v1/auth/login"
+          body: "*"
+        };
+      };
+      rpc Register(RegisterRequest) returns (RegisterResponse) {
+        option (google.api.http) = {
+          post: "/api/v1/auth/register"
+          body: "*"
+        };
+      };
+      rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {
+        option (google.api.http) = {
+          get: "/api/v1/users/profile"
+        };
+      };
+      rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
+        option (google.api.http) = {
+          patch: "/api/v1/users/profile"
+          body: "*"
+        };
+      };
+    }
+    
+    message User {
+      int64 id = 1;
+      string first_name = 2;
+      string last_name = 3;
+      string email = 4;
+    }
+    
+    message RegisterRequest {
+      string first_name = 1;
+      string last_name = 2;
+      string email = 3;
+      string password = 4;
+      string password_confirmation = 5;
+    }
+    
+    message RegisterResponse {
+      User user = 1;
+    }
+    
+    message AuthenticateRequest {
+      string email = 1;
+      string password = 2;
+    }
+    
+    message AuthenticateResponse {
+      string token = 1;
+    }
+    
+    message GetProfileRequest {}
+    
+    message GetProfileResponse {
+      User user = 1;
+    }
+    
+    message UpdateProfileRequest {
+      User user = 1;
+      google.protobuf.FieldMask update_mask = 2;
+    }
+    
+    message UpdateProfileResponse {
+      User user = 1;
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-proto-files
+  namespace: api
+data:
+  product.proto: |
+    syntax = "proto3";
+    
+    option go_package = "gen/v1/product";
+    
+    import "google/api/annotations.proto";
+    import "google/protobuf/field_mask.proto";
+    
+    package product.v1;
+    
+    service ProductCatalogService {
+      rpc GetProduct(GetProductRequest) returns (GetProductResponse) {
+        option (google.api.http) = {
+          get: "/api/v1/products/{id}"
+        };
+      };
+      rpc ListProducts(ListProductsRequest) returns (ListProductsResponse) {
+        option (google.api.http) = {
+          get: "/api/v1/products"
+        };
+      };
+      rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse) {
+        option (google.api.http) = {
+          post: "/api/v1/products"
+          body: "product"
+        };
+      };
+      rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse) {
+        option (google.api.http) = {
+          patch: "/api/v1/products/{id}"
+          body: "*"
+        };
+      };
+      rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse) {
+        option (google.api.http) = {
+          delete: "/api/v1/products/{id}"
+        };
+      };
+      rpc GetProductBySKU(GetProductBySKURequest) returns (GetProductBySKUResponse);
+    }
+    
+    message Product {
+      string id = 1;
+      string sku = 2;
+      string name = 3;
+      string description = 4;
+      double price = 5;
+      int32 stock_quantity = 7;
+      string category = 8;
+      string image_url = 9;
+      map<string, string> attributes = 10;
+      bool is_active = 11;
+    }
+    
+    message GetProductRequest {
+      string id = 1 ;
+    }
+    
+    message GetProductResponse {
+      Product product = 1;
+    }
+    
+    message ListProductsRequest {
+      string filter = 1;
+      int32 page = 2;
+      int32 page_size = 3;
+    }
+    
+    message ListProductsResponse {
+      repeated Product products = 1;
+      int32 next_page = 2;
+    }
+    
+    message CreateProductRequest {
+      Product product = 1;
+    }
+    
+    message CreateProductResponse {
+      Product product =1;
+    }
+    
+    message UpdateProductRequest {
+      Product product = 1;
+      google.protobuf.FieldMask update_mask = 2;
+      string id = 3;
+    }
+    
+    message UpdateProductResponse {
+      Product product = 1;
+    }
+    
+    message  DeleteProductRequest {
+      string id = 1;
+    }
+    
+    message DeleteProductResponse {}
+    
+    message GetProductBySKURequest {
+      string sku = 1;
+    }
+    
+    message GetProductBySKUResponse {
+      Product product =1;
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-proto-files
+  namespace: api
+data:
+  order.proto: |
+    syntax = "proto3";
+    
+    option go_package = "gen/v1/order";
+    
+    import "google/api/annotations.proto";
+    
+    package order.v1;
+    
+    service OrderService {
+      rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {
+        option (google.api.http) = {
+          post: "/api/v1/orders"
+          body: "*"
+        };
+      };
+      rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {
+        option (google.api.http) = {
+          get: "/api/v1/orders/{id}"
+        };
+      };
+      rpc ListUserOrders(ListUserOrdersRequest) returns (ListUserOrdersResponse) {
+        option (google.api.http) = {
+          get: "/api/v1/orders"
+        };
+      };
+    }
+    
+    message OrderItem {
+      string sku = 1;
+      int64 quantity = 2;
+      double price = 3;
+    }
+    
+    message Order {
+      int64 id = 1;
+      int64 user_id = 2;
+      Status status = 3;
+      repeated OrderItem items = 4;
+      double total_price = 5;
+      string shipping_address = 6;
+    }
+    
+    message CreateOrderRequest {
+      string shipping_address = 1;
+      PaymentMethod payment_method = 2;
+      oneof payment_info {
+        string payment_intent_id = 3;
+      }
+    }
+    
+    message CreateOrderResponse {
+      Order order = 1;
+    }
+    
+    message GetOrderRequest {
+      int64 id = 1;
+    }
+    
+    message GetOrderResponse {
+      Order order = 1;
+    }
+    
+    message ListUserOrdersRequest {}
+    
+    message ListUserOrdersResponse {
+      repeated Order orders = 1;
+    }
+    
+    enum Status {
+      STATUS_UNSPECIFIED = 0;
+      STATUS_PENDING = 1;
+      STATUS_PAID = 2;
+      STATUS_CONFIRMED = 3;
+      STATUS_CANCELLED = 4;
+    }
+    
+    enum PaymentMethod {
+      PAYMENT_METHOD_UNSPECIFIED = 0;
+      PAYMENT_METHOD_CARD = 1;
+      PAYMENT_METHOD_ON_DELIVERY = 2;
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-proto-files
+  namespace: api
+data:
+  payment.proto: |
+    syntax = "proto3";
+    
+    option go_package = "gen/v1/payment";
+    
+    import "google/api/annotations.proto";
+    import "google/protobuf/struct.proto";
+    
+    package payment.v1;
+    
+    service PaymentService {
+      rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse) {
+        option (google.api.http) = {
+          post: "/api/v1/payments"
+          body: "*"
+        };
+      };
+      rpc GetPayments(GetPaymentsRequest) returns (GetPaymentsResponse) {
+        option (google.api.http) = {
+          get: "/api/v1/payments"
+        };
+      };
+    }
+    
+    message Payment {
+      int64 id = 1;
+      float amount = 2;
+      Currency currency = 3;
+      Status status = 4;
+      google.protobuf.Value gateway_transaction_id = 5;
+      PaymentMethod payment_method = 6;
+      int64 order_id = 7;
+    }
+    
+    message ProcessPaymentRequest {}
+    
+    message ProcessPaymentResponse {
+      string client_secret = 1;
+      Payment payment = 2;
+    }
+    
+    message GetPaymentsRequest {}
+    
+    message GetPaymentsResponse {
+      repeated Payment payments = 1;
+    }
+    
+    enum Status {
+      STATUS_UNSPECIFIED = 0;
+      STATUS_PENDING = 1;
+      STATUS_COMPLETED = 2;
+      STATUS_FAILED = 3;
+      STATUS_REFUNDED = 4;
+    }
+    
+    enum PaymentMethod {
+      PAYMENT_METHOD_UNSPECIFIED = 0;
+      PAYMENT_METHOD_CARD = 1;
+      PAYMENT_METHOD_ON_DELIVERY = 2;
+    }
+    
+    enum Currency {
+      CURRENCY_UNSPECIFIED = 0;
+      CURRENCY_USD = 1;
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-proto-files
+  namespace: api
+data:
+  cart.proto: |
+    syntax = "proto3";
+    
+    option go_package = "gen/v1/cart";
+    
+    import "google/api/annotations.proto";
+    
+    package cart.v1;
+    
+    service ShoppingCartService {
+      rpc GetCart(GetCartRequest) returns (GetCartResponse) {
+        option (google.api.http) = {
+          get: "/api/v1/cart"
+        };
+      };
+      rpc AddItem(AddItemRequest) returns (AddItemResponse) {
+        option (google.api.http) = {
+          post: "/api/v1/cart/items"
+          body: "*"
+        };
+      };
+      rpc UpdateItem(UpdateItemRequest) returns (UpdateItemResponse) {
+        option (google.api.http) = {
+          patch: "/api/v1/cart/items/{sku}"
+          body: "*"
+        };
+      };
+      rpc RemoveItem(RemoveItemRequest) returns (RemoveItemResponse) {
+        option (google.api.http) = {
+          delete: "/api/v1/cart/items/{sku}"
+        };
+      };
+      rpc ClearCart(ClearCartRequest) returns (ClearCartResponse) {
+        option (google.api.http) = {
+          delete: "/api/v1/cart"
+        };
+      };
+    }
+    
+    message CartItem {
+      string sku = 1;
+      int32 quantity = 2;
+      string name = 3;
+      double price = 4;
+      string image_url = 5;
+      double item_total_price = 6;
+    }
+    
+    message GetCartRequest {}
+    
+    message GetCartResponse {
+      repeated CartItem items = 1;
+      double total_price = 2;
+      int32 total_items = 3;
+    }
+    
+    message AddItemRequest {
+      string sku = 1;
+      int32 quantity = 2;
+    }
+    
+    message AddItemResponse {
+      CartItem item = 1;
+    }
+    
+    message UpdateItemRequest {
+      string sku = 1;
+      int32 quantity = 2;
+    }
+    
+    message UpdateItemResponse {
+      CartItem item = 1;
+    }
+    
+    message RemoveItemRequest {
+      string sku = 1;
+    }
+    
+    message RemoveItemResponse {}
+    
+    message ClearCartRequest {}
+    
+    message ClearCartResponse {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: google-api-protos
+  namespace: api
+data:
+  annotations.proto: |
+    syntax = "proto3";
+    
+    package google.api;
+    
+    import "google/api/http.proto";
+    import "google/protobuf/descriptor.proto";
+    
+    option go_package = "google.golang.org/genproto/googleapis/api/annotations;annotations";
+    option java_multiple_files = true;
+    option java_outer_classname = "AnnotationsProto";
+    option java_package = "com.google.api";
+    option objc_class_prefix = "GAPI";
+    
+    extend google.protobuf.MethodOptions {
+      // See `HttpRule`.
+      HttpRule http = 72295728;
+    }
+
+  http.proto: |
+    syntax = "proto3";
+    
+    package google.api;
+    
+    option go_package = "google.golang.org/genproto/googleapis/api/annotations;annotations";
+    option java_multiple_files = true;
+    option java_outer_classname = "HttpProto";
+    option java_package = "com.google.api";
+    option objc_class_prefix = "GAPI";
+    
+    message Http {
+      repeated HttpRule rules = 1;
+      bool fully_decode_reserved_expansion = 2;
+    }
+    
+    message HttpRule {
+      string selector = 1;
+      oneof pattern {
+        string get = 2;
+        string put = 3;
+        string post = 4;
+        string delete = 5;
+        string patch = 6;
+        CustomHttpPattern custom = 8;
+      }
+      string body = 7;
+      string response_body = 12;
+      repeated HttpRule additional_bindings = 11;
+    }
+    
+    message CustomHttpPattern {
+      string kind = 1;
+      string path = 2;
+    }
