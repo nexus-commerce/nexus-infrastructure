@@ -83,4 +83,8 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: 8Gi
+            memory: "768Mi"
+            cpu: "300m"
+          limits:
+            memory: "1.5Gi"
+            cpu: "800m"
