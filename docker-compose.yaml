@@ -15,7 +15,7 @@ services:
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
 
   user-service:
-    image: voloshmiak/user-service:0.0.6
+    image: voloshmiak/user-service:0.0.7
     container_name: user-service
     hostname: user-service
     networks:
@@ -39,7 +39,7 @@ services:
       KAFKA_PORT: 29092
 
   product-catalog-service:
-    image: voloshmiak/product-catalog-service:0.0.2
+    image: voloshmiak/product-catalog-service:0.0.3
     container_name: product-catalog-service
     hostname: product-catalog-service
     networks:
@@ -67,7 +67,7 @@ services:
       - ELASTIC_PORT=9200
 
   shopping-cart-service:
-    image: voloshmiak/shopping-cart-service:0.0.4
+    image: voloshmiak/shopping-cart-service:0.0.5
     container_name: shopping-cart-service
     hostname: shopping-cart-service
     networks:
@@ -115,7 +115,7 @@ services:
       STRIPE_SECRET: ${STRIPE_SECRET}
 
   order-service:
-    image: voloshmiak/order-service:0.0.6
+    image: voloshmiak/order-service:0.0.7
     container_name: order-service
     hostname: order-service
     networks:
@@ -159,7 +159,7 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_HOST_AUTH_METHOD=md5
     healthcheck:
-      test: [ "CMD", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      test: [ "CMD", "pg_isready", "-U", "$${POSTGRES_USER}", "-d", "$${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -182,7 +182,7 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_HOST_AUTH_METHOD=md5
     healthcheck:
-      test: [ "CMD", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      test: [ "CMD", "pg_isready", "-U", "$${POSTGRES_USER}", "-d", "$${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -205,7 +205,7 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_HOST_AUTH_METHOD=md5
     healthcheck:
-      test: [ "CMD", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      test: [ "CMD", "pg_isready", "-U", "$${POSTGRES_USER}", "-d", "$${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -334,9 +334,6 @@ services:
       - ./nexus-contracts/proto:/kong/proto
       - ./nexus-contracts/proto/google/api:/usr/local/kong/include/google/api
     restart: always
-    depends_on:
-      order-service:
-        condition: service_started
     environment:
       KONG_PREFIX: /var/run/kong
       KONG_DATABASE: off
