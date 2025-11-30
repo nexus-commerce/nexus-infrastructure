@@ -1,17 +1,3 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: api-gateway-service
-  namespace: api
-spec:
-  type: LoadBalancer
-  selector:
-    app: api-gateway
-  ports:
-    - name: proxy
-      port: 8000
-      targetPort: 8000
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,46 +15,71 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: kong/kong-gateway:latest
+          image: voloshmiak/my-custom-kong:0.0.1 # Updated to match docker-compose
           env:
+            - name: KONG_PREFIX
+              value: "/var/run/kong"
             - name: KONG_DATABASE
               value: "off"
+            - name: KONG_STATUS_LISTEN
+              value: "0.0.0.0:8100"
             - name: KONG_DECLARATIVE_CONFIG
               value: "/kong_config/kong.yaml"
-            - name: KONG_PROXY_LISTEN
-              value: "0.0.0.0:8000"
-            - name: KONG_ADMIN_LISTEN
-              value: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
             - name: KONG_PROXY_ACCESS_LOG
-              value: /dev/stdout
+              value: "/dev/stdout"
             - name: KONG_ADMIN_ACCESS_LOG
-              value: /dev/stdout
+              value: "/dev/stdout"
             - name: KONG_PROXY_ERROR_LOG
-              value: /dev/stderr
+              value: "/dev/stderr"
             - name: KONG_ADMIN_ERROR_LOG
-              value: /dev/stderr
-            - name: KONG_PROTO_PATH
-              value: "/usr/local/kong/protos"
-          # ================================================================
-
+              value: "/dev/stderr"
+            - name: KONG_ADMIN_LISTEN
+              value: "0.0.0.0:8001"
+            - name: KONG_ADMIN_GUI_URL
+              value: "http://localhost:8002"
+            - name: KONG_LICENSE_DATA
+              value: "${KONG_LICENSE_DATA}"
           ports:
-            - containerPort: 8000
+            - containerPort: 8000 # Proxy
+            - containerPort: 8001 # Admin API
+            - containerPort: 8100 # Status
+          
+          readinessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:8100/status/ready
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:8100/status/ready
+            initialDelaySeconds: 10 # Matches start_period
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+
           volumeMounts:
             - name: kong-config-volume
               mountPath: /kong_config
             - name: kong-protos-user
-              mountPath: /kong/protos/user
+              mountPath: /kong/proto/user/v1
             - name: kong-protos-product
-              mountPath: /kong/protos/product-catalog
+              mountPath: /kong/proto/product/v1
             - name: kong-protos-order
-              mountPath: /kong/protos/order
+              mountPath: /kong/proto/order/v1
             - name: kong-protos-payment
-              mountPath: /kong/protos/payment
+              mountPath: /kong/proto/payment/v1
             - name: kong-protos-cart
-              mountPath: /kong/protos/shopping-cart
+              mountPath: /kong/proto/cart/v1
             - name: google-protos
               mountPath: /usr/local/kong/include/google/api
-
       volumes:
         - name: kong-config-volume
           configMap:
