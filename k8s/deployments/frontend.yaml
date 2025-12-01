@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: voloshmiak/frontend:0.0.2
+          image: voloshmiak/frontend:0.0.3
           ports:
             - containerPort: 80
           env:
