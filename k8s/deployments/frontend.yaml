@@ -22,17 +22,17 @@ spec:
             - name: VUE_APP_API_BASE_URL
               valueFrom:
                 configMapKeyRef:
-                  name: service-config
+                  name: api-config
                   key: VUE_APP_API_BASE_URL
             - name: VUE_APP_STRIPE_PUBLISHABLE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: service-secrets
+                  name: api-secrets
                   key: STRIPE_PUBLISHABLE_KEY
             - name: VUE_APP_DEBUG
               valueFrom:
                 configMapKeyRef:
-                  name: service-config
+                  name: api-config
                   key: VUE_APP_DEBUG
           readinessProbe:
             httpGet:

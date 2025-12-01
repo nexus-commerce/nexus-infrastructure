@@ -54,7 +54,3 @@ data:
   # Notification Service
   NOTIFICATION_KAFKA_HOST: "kafka-service.data"
   NOTIFICATION_KAFKA_PORT: "9092"
-
-  # Frontend Service
-  VUE_APP_API_BASE_URL: "http://34.141.60.44:8000/api/v1"
-  VUE_APP_DEBUG: "false"
