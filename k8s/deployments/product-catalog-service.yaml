@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: product-catalog-service
-          image: voloshmiak/product-catalog-service:0.0.3
+          image: voloshmiak/product-catalog-service:0.0.4
           ports:
             - containerPort: 8080
           env:

@@ -39,7 +39,7 @@ services:
       KAFKA_PORT: 29092
 
   product-catalog-service:
-    image: voloshmiak/product-catalog-service:0.0.3
+    image: voloshmiak/product-catalog-service:0.0.4
     container_name: product-catalog-service
     hostname: product-catalog-service
     networks:
