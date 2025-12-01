@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: voloshmiak/payment-service:0.0.6
+          image: voloshmiak/payment-service:0.0.7
           ports:
             - containerPort: 8080
           env:
