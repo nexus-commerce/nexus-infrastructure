@@ -354,7 +354,7 @@ services:
       start_period: 10s
 
   frontend:
-    image: voloshmiak/frontend:0.0.1
+    image: voloshmiak/frontend:0.0.2
     container_name: frontend
     hostname: frontend
     networks:
