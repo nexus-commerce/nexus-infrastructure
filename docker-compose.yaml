@@ -326,7 +326,7 @@ services:
     networks:
       - ecommerce-network
     ports:
-      - "80:8000"
+      - "8000:8000"
     volumes:
       - ./kong:/kong/declarative/
       - ./kong/kong-data/tmp:/tmp
@@ -352,6 +352,20 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  frontend:
+    image: voloshmiak/frontend:0.0.1
+    container_name: frontend
+    hostname: frontend
+    networks:
+      - ecommerce-network
+    ports:
+      - "3000:80"
+    restart: always
+    environment:
+      - VUE_APP_API_BASE_URL=http://34.141.60.44:8000/api/v1
+      - VUE_APP_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE}
+      - VUE_APP_DEBUG=false
 
 networks:
   ecommerce-network:
